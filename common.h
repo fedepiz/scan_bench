@@ -10,28 +10,34 @@ const int BLOCK_SIZE = 64;
 // CPU-local scan
 void local_scan_inplace(std::vector<float>& data);
 
-
 class GpuAlgo {
+    public:
+        virtual const char *name() const = 0;
+        virtual TestRun run(std::vector<float> input, bool gold_silent) const = 0;
+};
+
+class CudaAlgo : public GpuAlgo {
     protected:
         virtual void block_scans(size_t input_size, float *d_output, float *d_block_sums, float *d_input) const = 0;
 
     public:
         virtual const char *name() const = 0;
-        TestRun run(std::vector<float> input, bool gold_silent) const;
+        virtual TestRun run(std::vector<float> input, bool gold_silent) const;
 };
 
-class NvidiaAlgo : public GpuAlgo {
+class NvidiaAlgo : public CudaAlgo {
     protected:
         void block_scans(size_t input_size, float *d_output, float *d_block_sums, float *d_input) const override;
     public:
         const char *name() const override;
 };
 
-class DpiaAlgo : public GpuAlgo {
+class DpiaAlgo : public CudaAlgo {
      protected:
         void block_scans(size_t input_size, float *d_output, float *d_block_sums, float *d_input) const override;
     public:
         const char *name() const override;
 };
+
 
 #endif

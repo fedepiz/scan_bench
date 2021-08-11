@@ -74,7 +74,7 @@ __global__ void cuda_add(float* partials, float* block_sums, int block_size) {
     }
 }
 
-TestRun GpuAlgo::run(std::vector<float> input, bool gold_silent) const {
+TestRun CudaAlgo::run(std::vector<float> input, bool gold_silent) const {
     auto input_size = input.size();
 
     const int NUM_BLOCKS = input_size / BLOCK_SIZE;

@@ -8,8 +8,7 @@
 
 #include <common.h>
 #include <test.h>
-
-
+#include <opencl.h>
 
 struct conf {
     unsigned int step_size;
@@ -64,13 +63,14 @@ std::vector<std::string> run_test(const conf& conf, const GpuAlgo& algo) {
 
         // execute each run and collect its timing
         std::vector<Timing> runs;
-        for (auto i = 0; i < conf.num_sizes; i++) {
+        for (auto i = 0; i < conf.run_per_size; i++) {
+            std::cout << "Repeat " << (i+1) << "/" << conf.run_per_size << std::endl;
             auto run = algo.run(sample_input, conf.gold_check);
             run.notify_problems();
             runs.push_back(run.get_timing());
         }
         auto average = Timing::average(runs);
-        //average.printout();
+        average.printout();
         output.push_back(average.csv_line(algo.name(), input_size));
     }
 
@@ -152,6 +152,20 @@ int main(int argc, char** argv) {
     }
 
     std::vector<std::string> lines;
+
+    {
+        DpiaOpenCLALgo algo;
+        auto result = run_test(conf, algo);
+        lines.reserve(lines.size() + result.size());
+        std::move(std::begin(result), std::end(result), std::back_inserter(lines));
+    }
+
+     {
+        NvidiaOpenCLAlgo algo;
+        auto result = run_test(conf, algo);
+        lines.reserve(lines.size() + result.size());
+        std::move(std::begin(result), std::end(result), std::back_inserter(lines));
+    }
 
     {
         NvidiaAlgo algo;
