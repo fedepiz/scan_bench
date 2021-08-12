@@ -63,12 +63,14 @@ std::vector<std::string> run_test(const conf& conf, const GpuAlgo& algo) {
 
         // execute each run and collect its timing
         std::vector<Timing> runs;
+        std::cout << "Repeat ";
         for (auto i = 0; i < conf.run_per_size; i++) {
-            std::cout << "Repeat " << (i+1) << "/" << conf.run_per_size << std::endl;
-            auto run = algo.run(sample_input, conf.gold_check);
+            std::cout << (i + 1) << " ";
+            auto run = algo.run(sample_input, !conf.gold_check);
             run.notify_problems();
             runs.push_back(run.get_timing());
         }
+        std::cout << std::endl;
         auto average = Timing::average(runs);
         average.printout();
         output.push_back(average.csv_line(algo.name(), input_size));
@@ -139,6 +141,13 @@ bool handle_arguments(conf& conf, int argc, char** argv) {
     }
 
     conf.gold_check = gold_check_param;
+    const char *status;
+    if (conf.gold_check) {
+        status = "enabled";
+    } else {
+        status = "disabled";
+    }
+    std::cout << "Gold check is: " << status << std::endl;
 
     return true;
 }
@@ -150,7 +159,7 @@ int main(int argc, char** argv) {
         std::cout << "Program aborted" << std::endl;
         return 0;
     }
-
+     
     std::vector<std::string> lines;
 
     {

@@ -309,6 +309,6 @@ __kernel void opencl_add(__global float* partials, __global float* block_sums) {
     float value = block_sums[get_global_id(0)];
 
     for (auto i = 0; i < BLOCK_SIZE; i++) {
-        block_sums[BLOCK_SIZE * get_global_id(0) + i] += value;
+        partials[BLOCK_SIZE * get_global_id(0) + i] += value;
     }
 }

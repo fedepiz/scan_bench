@@ -102,7 +102,7 @@ TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent) const {
 	/*Step 3: Create context.*/
 	cl_context context = clCreateContext(NULL, 1, devices, NULL, NULL, NULL);
     /*Step 4: Creating command queue associate with the context.*/
-	cl_command_queue commandQueue = clCreateCommandQueue(context, devices[0], 0, NULL);
+	cl_command_queue commandQueue = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
 
     /*Step 5: Create program object */
 	std::string sourceStr;
@@ -129,15 +129,16 @@ TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent) const {
     gpuErrchk(clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&d_output));
     gpuErrchk(clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&d_block_sums));
 
+    auto global_size = num_blocks * threads_per_block;
     size_t global_work_size[1] = { num_blocks * threads_per_block };
     size_t local_work_size[1] = { (size_t)threads_per_block };
 
     cl_event block_scan_event;
     gpuErrchk(clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, &block_scan_event));
 
-    std::vector<float> output;
-    output.resize(input_size);
-    gpuErrchk(clEnqueueReadBuffer(commandQueue, d_output, true, 0, sizeof(float) * input_size, (void *)output.data(), 0, NULL, NULL));
+    // std::vector<float> output;
+    // output.resize(input_size);
+    // gpuErrchk(clEnqueueReadBuffer(commandQueue, d_output, true, 0, sizeof(float) * input_size, (void *)output.data(), 0, NULL, NULL));
 
     std::vector<float> block_sums;
     block_sums.resize(num_blocks);
@@ -158,10 +159,14 @@ TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent) const {
     cl_event add_event;
     gpuErrchk(clEnqueueNDRangeKernel(commandQueue, kernel2, 1, NULL, global_work_size, NULL, 0, NULL, &add_event));
 
+    std::vector<float> output;
     output.resize(input_size);
     gpuErrchk(clEnqueueReadBuffer(commandQueue, d_output, true, 0, sizeof(float) * input_size, (void *)output.data(), 0, NULL, NULL));
 
     clFinish(commandQueue);
+    clWaitForEvents(1, &block_scan_event);
+    clWaitForEvents(1, &add_event);
+
     float block_scans_time = event_time(block_scan_event);
     float add_time = event_time(add_event);
     Timing timing(block_scans_time, add_time);
