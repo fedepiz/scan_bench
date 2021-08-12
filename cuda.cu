@@ -159,7 +159,7 @@ TestRun CudaAlgo::run(std::vector<float> input, bool gold_silent) const {
 }
 
 const char* NvidiaAlgo::name() const {
-    return "nvidia";
+    return "cuda nvidia";
 }
 
 void NvidiaAlgo::block_scans(size_t input_size, float* d_output, float* d_block_sums, float* d_input) const  {
@@ -168,7 +168,7 @@ void NvidiaAlgo::block_scans(size_t input_size, float* d_output, float* d_block_
 
 
 const char* DpiaAlgo::name() const {
-    return "dpia";
+    return "cuda dpia";
 }
 
 __global__ void dpia_block_scans_internal(float *output, float *d_block_sums, const float *d_input);

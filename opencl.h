@@ -19,7 +19,7 @@ class NvidiaOpenCLAlgo : public OpenCLAlgo {
         }
     public:
         const char* name() const {
-            return "nvidia ocl";
+            return "ocl nvidia";
         }
 };
 
@@ -30,7 +30,7 @@ class DpiaOpenCLALgo : public OpenCLAlgo {
         }
     public:
         const char* name() const {
-            return "dpia ocl";
+            return "ocl dpia";
         }
 };
 
