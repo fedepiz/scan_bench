@@ -1,5 +1,6 @@
 #ifndef OPENCL_H
 #define OPENCL_H
+#define CL_TARGET_OPENCL_VERSION 120
 #include <vector>
 #include <test.h>
 #include <common.h>
