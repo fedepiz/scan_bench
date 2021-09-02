@@ -169,26 +169,12 @@ int main(int argc, char** argv) {
         std::move(std::begin(result), std::end(result), std::back_inserter(lines));
     }
 
-    //  {
-    //     NvidiaOpenCLAlgo algo;
-    //     auto result = run_test(conf, algo);
-    //     lines.reserve(lines.size() + result.size());
-    //     std::move(std::begin(result), std::end(result), std::back_inserter(lines));
-    // }
-
-    // {
-    //     NvidiaAlgo algo;
-    //     auto result = run_test(conf, algo);
-    //     lines.reserve(lines.size() + result.size());
-    //     std::move(std::begin(result), std::end(result), std::back_inserter(lines));
-    // }
-
-    // {
-    //     DpiaAlgo algo;
-    //     auto result = run_test(conf, algo);
-    //     lines.reserve(lines.size() + result.size());
-    //     std::move(std::begin(result), std::end(result), std::back_inserter(lines));
-    // }
+     {
+        NvidiaOpenCLAlgo algo;
+        auto result = run_test(conf, algo);
+        lines.reserve(lines.size() + result.size());
+        std::move(std::begin(result), std::end(result), std::back_inserter(lines));
+    }
 
      // printout results as csv to stdout
     for (const auto& line:lines) {
