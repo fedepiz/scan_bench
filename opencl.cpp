@@ -150,15 +150,18 @@ TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent) const {
     gpuErrchk(clEnqueueWriteBuffer(commandQueue, d_block_sums, true, 0, sizeof(float) * num_blocks, (void *)block_sums.data(), 0, NULL, NULL));
 
     cl_int err_no;
-    cl_kernel kernel2 = clCreateKernel(program, "opencl_add", &err_no);
+    cl_kernel kernel2 = clCreateKernel(program, "opencl_add2", &err_no);
     gpuErrchk(err_no);
 
     gpuErrchk(clSetKernelArg(kernel2, 0, sizeof(cl_mem), (void *)&d_output));
     gpuErrchk(clSetKernelArg(kernel2, 1, sizeof(cl_mem), (void *)&d_block_sums));
-    global_work_size[0] = num_blocks;
+
+
+    local_work_size[0] = BLOCK_SIZE;
+    global_work_size[0] = num_blocks*local_work_size[0];
 
     cl_event add_event;
-    gpuErrchk(clEnqueueNDRangeKernel(commandQueue, kernel2, 1, NULL, global_work_size, NULL, 0, NULL, &add_event));
+    gpuErrchk(clEnqueueNDRangeKernel(commandQueue, kernel2, 1, NULL, global_work_size, local_work_size, 0, NULL, &add_event));
 
     std::vector<float> output;
     output.resize(input_size);
