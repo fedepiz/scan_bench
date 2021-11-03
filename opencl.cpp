@@ -85,19 +85,22 @@ TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent, int repeat) 
 
     cl_uint numDevices = 0;
 	cl_device_id        *devices;
-	gpuErrchk(clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices));
+
+    cl_device_type typ = CL_DEVICE_TYPE_GPU;
+
+	gpuErrchk(clGetDeviceIDs(platform, typ, 0, NULL, &numDevices));
 	if (numDevices == 0) //no GPU available.
 	{
 		std::cout << "No GPU device available." << std::endl;
 		std::cout << "Choose CPU as default device." << std::endl;
-		gpuErrchk(clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 0, NULL, &numDevices));
+		gpuErrchk(clGetDeviceIDs(platform, typ, 0, NULL, &numDevices));
 		devices = (cl_device_id*)malloc(numDevices * sizeof(cl_device_id));
-		gpuErrchk(clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, numDevices, devices, NULL));
+		gpuErrchk(clGetDeviceIDs(platform, typ, numDevices, devices, NULL));
 	}
 	else
 	{
 		devices = (cl_device_id*)malloc(numDevices * sizeof(cl_device_id));
-		(clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numDevices, devices, NULL));
+		(clGetDeviceIDs(platform, typ, numDevices, devices, NULL));
 	}
     
 	/*Step 3: Create context.*/
