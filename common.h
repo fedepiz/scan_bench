@@ -5,7 +5,7 @@
 #include <vector>
 
 // The size in floats of each local block. This must be a power of 2 to work.
-const int BLOCK_SIZE = 64;
+const int BLOCK_SIZE = 256;
 
 // CPU-local scan
 void local_scan_inplace(std::vector<float>& data);
@@ -13,7 +13,7 @@ void local_scan_inplace(std::vector<float>& data);
 class GpuAlgo {
     public:
         virtual const char *name() const = 0;
-        virtual TestRun run(std::vector<float> input, bool gold_silent) const = 0;
+        virtual TestRun run(std::vector<float> input, bool gold_silent, int repeat) const = 0;
 };
 
 class CudaAlgo : public GpuAlgo {

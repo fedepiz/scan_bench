@@ -10,7 +10,7 @@ class OpenCLAlgo : public GpuAlgo {
         virtual const char *block_scan_kernel_name() const = 0;
 
     public:
-        virtual TestRun run(std::vector<float> input, bool gold_silent) const; 
+        virtual TestRun run(std::vector<float> input, bool gold_silent, int repeat) const; 
 };
 
 class NvidiaOpenCLAlgo : public OpenCLAlgo {

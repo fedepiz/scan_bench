@@ -64,7 +64,7 @@ double event_time(cl_event event) {
     return nanoSeconds / 1000000.0;
 }
 
-TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent) const {
+TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent, int repeat) const {
     auto input_size = input.size();
 
     auto gold = input;
@@ -102,6 +102,16 @@ TestRun OpenCLAlgo::run(std::vector<float> input, bool gold_silent) const {
     
 	/*Step 3: Create context.*/
 	cl_context context = clCreateContext(NULL, 1, devices, NULL, NULL, NULL);
+
+    if (repeat == 0) {
+        size_t value_size;
+        char* value;
+        clGetDeviceInfo(devices[0], CL_DEVICE_NAME, 0, NULL, &value_size);
+        value = new char[value_size];
+        clGetDeviceInfo(devices[0], CL_DEVICE_NAME, value_size, value, NULL);
+        std::cout << "Using device: " << value << std::endl;
+    }
+
     /*Step 4: Creating command queue associate with the context.*/
 	cl_command_queue commandQueue = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
 
