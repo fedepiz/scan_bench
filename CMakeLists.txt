@@ -16,6 +16,8 @@ find_package(OpenCL REQUIRED)
 #add_executable(main main.cpp common.cpp cuda.cu opencl.cpp test.cpp)
 add_executable(main main.cpp common.cpp opencl.cpp test.cpp)
 configure_file(kernels/ocl_kernel.cl kernels/ocl_kernel.cl)
+configure_file(kernels/kernels.cl kernels/kernels.cl)
+configure_file(kernels/kernels.csv kernels/kernels.csv)
 
 #target_include_directories(main PRIVATE ${ARGUMENTUM_INCLUDE})
 

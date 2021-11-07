@@ -35,4 +35,24 @@ class DpiaOpenCLALgo : public OpenCLAlgo {
         }
 };
 
+
+
+class DataAlgo: public GpuAlgo {
+    public:
+        std::string kernel_name;
+        size_t input_size;
+        size_t block_size;
+        size_t skip_depth;
+        size_t branching_factor;
+        size_t global_size;
+        size_t local_size;
+
+        const char *name() const {
+            return this->kernel_name.c_str();
+        }
+        virtual TestRun run(std::vector<float> input, bool gold_silent, int repeat) const;
+
+        static std::vector<DataAlgo> load();
+};
+
 #endif

@@ -6,12 +6,12 @@
 #include <sstream>
 
 class Timing {
-    private:
+    public:
+
     float block_scans_time;
     float add_time;
     float total_time;
 
-    public:
     Timing(float block_scans_time, float add_time);
     void printout() const;
     std::string csv_line(const char* name, int input_size) const;
