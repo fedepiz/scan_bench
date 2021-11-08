@@ -5,7 +5,7 @@
 #include <vector>
 
 // The size in floats of each local block. This must be a power of 2 to work.
-const int BLOCK_SIZE = 256;
+const int BLOCK_SIZE = 64;
 
 // CPU-local scan
 void local_scan_inplace(std::vector<float>& data);

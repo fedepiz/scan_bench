@@ -1,4 +1,4 @@
-#define BLOCK_SIZE 256
+#define BLOCK_SIZE 64
 
 
 __kernel void nvidia_block_sums(__global float* g_idata, __global float* g_odata, __global float* g_sums) {

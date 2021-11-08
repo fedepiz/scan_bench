@@ -169,41 +169,55 @@ int main(int argc, char** argv) {
 
     std::vector<std::string> lines;
 
-    auto algos = DataAlgo::load();
+    // auto algos = DataAlgo::load();
 
-    for (const auto& algo:algos)  {
-        std::vector<float> input;
-        input.reserve(algo.input_size);
-        for (auto i = 0; i < algo.input_size; i++) {
-            input.push_back((float)i);
-        }
-        std::cout << algo.kernel_name << std::endl;
-        auto run = algo.run(std::move(input), true, 1);
+    // for (const auto& algo:algos)  {
+    //     std::vector<float> input;
+    //     input.reserve(algo.input_size);
+    //     for (auto i = 0; i < algo.input_size; i++) {
+    //         input.push_back((float)i);
+    //     }
+    //     std::cout << algo.kernel_name << std::endl;
+    //     auto run = algo.run(std::move(input), true, 1);
 
-        std::stringstream sstream;
-        sstream << algo.input_size << "," 
-            << algo.block_size << "," 
-            << algo.skip_depth << "," 
-            << run.get_timing().block_scans_time << std::endl;
+    //     std::stringstream sstream;
+    //     sstream << algo.input_size << "," 
+    //         << algo.block_size << "," 
+    //         << algo.skip_depth << "," 
+    //         << run.get_timing().block_scans_time << std::endl;
         
-        auto line = sstream.str();
-        std::cout << line << std::endl;
-        lines.push_back(std::move(line));
+    //     auto line = sstream.str();
+    //     std::cout << line << std::endl;
+    //     lines.push_back(std::move(line));
+    // }
+
+//   {
+//         DpiaOpenCLALgo algo;
+//         std::vector<float> input;
+//         const int input_size = 25600000;
+//         input.reserve(input_size);
+//         for (int i = 0; i < input_size; i++) {
+//             input.push_back(i % 5);
+//         }
+
+//         auto run = algo.run(std::move(input), false, 1);
+//         run.notify_problems();
+//         std::cout << run.get_timing().block_scans_time << std::endl;
+//     }
+
+    {
+        DpiaOpenCLALgo algo;
+        auto result = run_test(conf, algo);
+        lines.reserve(lines.size() + result.size());
+        std::move(std::begin(result), std::end(result), std::back_inserter(lines));
     }
 
-    // {
-    //     DpiaOpenCLALgo algo;
-    //     auto result = run_test(conf, algo);
-    //     lines.reserve(lines.size() + result.size());
-    //     std::move(std::begin(result), std::end(result), std::back_inserter(lines));
-    // }
-
-    //  {
-    //     NvidiaOpenCLAlgo algo;
-    //     auto result = run_test(conf, algo);
-    //     lines.reserve(lines.size() + result.size());
-    //     std::move(std::begin(result), std::end(result), std::back_inserter(lines));
-    // }
+     {
+        NvidiaOpenCLAlgo algo;
+        auto result = run_test(conf, algo);
+        lines.reserve(lines.size() + result.size());
+        std::move(std::begin(result), std::end(result), std::back_inserter(lines));
+    }
 
     // {
     //     NvidiaAlgo algo;

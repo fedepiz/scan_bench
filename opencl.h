@@ -43,6 +43,7 @@ class DataAlgo: public GpuAlgo {
         size_t input_size;
         size_t block_size;
         size_t skip_depth;
+        size_t depth;
         size_t branching_factor;
         size_t global_size;
         size_t local_size;
