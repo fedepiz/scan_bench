@@ -14,7 +14,7 @@ find_package(OpenCL REQUIRED)
 #find_path(ARGUMENTUM_INCLUDE argumentum/argparse.h)
 
 #add_executable(main main.cpp common.cpp cuda.cu opencl.cpp test.cpp)
-add_executable(main main.cpp common.cpp opencl.cpp test.cpp)
+add_executable(main main.cpp common.cpp opencl.cpp test.cpp benchmark.cpp)
 configure_file(kernels/ocl_kernel.cl kernels/ocl_kernel.cl)
 configure_file(kernels/kernels.cl kernels/kernels.cl)
 configure_file(kernels/kernels.csv kernels/kernels.csv)

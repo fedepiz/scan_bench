@@ -249,15 +249,16 @@ std::vector<DataAlgo> DataAlgo::load() {
         spec.branching_factor = std::stoi(tokens[BRANCH_FACTOR]);
         spec.local_size = std::stoi(tokens[LOCAL_SIZE]);
         spec.global_size = std::stoi(tokens[GLOBAL_SIZE]);
-
         specs.push_back(spec);
     }
     return specs;
 }
 
 TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) const {
-    auto input_size = this->input_size;
-    auto num_blocks = this->input_size / this->block_size;
+    auto input_size = input.size();
+    auto num_blocks = input_size / this->block_size;
+
+    std::cout << "Numb blocks should be " << this->input_size/this->block_size << " but is " << num_blocks << std::endl;
 
     auto gold = input;
     local_scan_inplace(gold);
@@ -304,7 +305,7 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
         clGetDeviceInfo(devices[0], CL_DEVICE_NAME, 0, NULL, &value_size);
         value = new char[value_size];
         clGetDeviceInfo(devices[0], CL_DEVICE_NAME, value_size, value, NULL);
-        std::cout << "Using device: " << value << std::endl;
+        //std::cout << "Using device: " << value << std::endl;
     }
 
     /*Step 4: Creating command queue associate with the context.*/
@@ -320,12 +321,9 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
     /*Step 6: Build program. */
 	gpuErrchk(clBuildProgram(program, 1, devices, NULL, NULL, NULL));
 
-
-
     // Allocate device memory
     cl_mem d_inputs = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(float) * input_size, (void*)input.data(), NULL);
     cl_mem d_output = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * input_size, NULL, NULL);
-    cl_mem d_block_sums = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * num_blocks, NULL, NULL);
 
     cl_kernel kernel = clCreateKernel(program, this->kernel_name.c_str(), NULL);
 
@@ -338,16 +336,22 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
     auto global_size = num_blocks * threads_per_block;
     size_t global_work_size[1] = { num_blocks * threads_per_block };
     size_t local_work_size[1] = { (size_t)threads_per_block };
-    // size_t global_work_size[1] = { this->global_size };
-    // size_t local_work_size[1] = { this->local_size };
+
+    //std::cout << "Expected: " << global_work_size[0] << " " << local_work_size[0] << std::endl;
+
+    //global_work_size[0] = this->global_size;
+    local_work_size[0] = this->local_size;
+
+    // std::cout << "Found: " << global_work_size[0] << " " << local_work_size[0] << std::endl;
+
 
     cl_event block_scan_event;
     gpuErrchk(clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, &block_scan_event));
     clWaitForEvents(1, &block_scan_event);
 
-    std::vector<float> output;
-    output.resize(input_size);
-    gpuErrchk(clEnqueueReadBuffer(commandQueue, d_output, true, 0, sizeof(float) * input_size, (void *)output.data(), 0, NULL, NULL));
+    //std::vector<float> output;
+    //output.resize(input_size);
+    //gpuErrchk(clEnqueueReadBuffer(commandQueue, d_output, true, 0, sizeof(float) * input_size, (void *)output.data(), 0, NULL, NULL));
     clFinish(commandQueue);
 
     float block_scans_time = event_time(block_scan_event);
@@ -361,9 +365,11 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
 	gpuErrchk(clReleaseProgram(program)); //Release the program object.
 	gpuErrchk(clReleaseMemObject(d_inputs)); //Release mem object.
 	gpuErrchk(clReleaseMemObject(d_output));
-    gpuErrchk(clReleaseMemObject(d_block_sums));
+
+    clFinish(commandQueue);
 	gpuErrchk(clReleaseCommandQueue(commandQueue)); //Release  Command queue.
-	gpuErrchk(clReleaseContext(context)); //Release context.
+	gpuErrchk(clReleaseContext(context)); //Release context
+
 
     return TestRun({}, timing, check);
 }

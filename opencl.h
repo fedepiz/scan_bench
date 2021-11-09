@@ -52,7 +52,6 @@ class DataAlgo: public GpuAlgo {
             return this->kernel_name.c_str();
         }
         virtual TestRun run(std::vector<float> input, bool gold_silent, int repeat) const;
-
         static std::vector<DataAlgo> load();
 };
 
