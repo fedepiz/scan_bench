@@ -1,7 +1,11 @@
 #include <opencl.h>
 #include <common.h>
 
-#include <CL/opencl.h>
+#if defined(__APPLE__)
+ #include <OpenCL/cl.h>
+#else
+ #include <CL/opencl.h>
+#endif
 
 #include <vector>
 #include <iostream>

@@ -38,7 +38,7 @@ config load_config() {
     config conf;
     conf.minSize = 524288;
     conf.step = 1048576 - conf.minSize;
-    conf.maxSize = 2*1048576;// 31981568;
+    conf.maxSize = 31981568;
     conf.num_steps = conf.maxSize / conf.minSize;
     return conf;
 }
@@ -50,6 +50,8 @@ struct data {
     std::vector<float> nvidia;
     std::vector<float> dpia;
     std::vector<float> best;
+
+    int best_idx = -1;
 
     std::vector<float> extra_time;
 
@@ -132,7 +134,7 @@ void benchmark() {
         }
 
         std::cout << "Best variation found at idx " << best_idx << ", re-running it end-to-end" << std::endl;
-
+        data.best_idx = best_idx;
         
         DataAlgo algo = data.explorations_def[best_idx];
         std::cout << "Best name is: " << algo.kernel_name << std::endl;
@@ -180,6 +182,13 @@ void benchmark() {
                 << algo.branching_factor << "," << algo.skip_depth << "," << time;
         }
         res_file << std::endl;
+        res_file.flush();
+    }
+
+    {
+        
+        std::ofstream res_file("./best_name.txt", std::ios::trunc);
+        res_file << data.explorations_def[data.best_idx].kernel_name << std::endl;
         res_file.flush();
     }
 
