@@ -258,8 +258,6 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
     auto input_size = input.size();
     auto num_blocks = input_size / this->block_size;
 
-    std::cout << "Numb blocks should be " << this->input_size/this->block_size << " but is " << num_blocks << std::endl;
-
     auto gold = input;
     local_scan_inplace(gold);
 
@@ -329,7 +327,8 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
 
 
     gpuErrchk(clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&d_output));
-    gpuErrchk(clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&d_inputs));
+    gpuErrchk(clSetKernelArg(kernel, 1, sizeof(cl_int), (void*)&input_size));
+    gpuErrchk(clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&d_inputs));
 
 
     auto threads_per_block = block_size / 2;
@@ -340,7 +339,7 @@ TestRun DataAlgo::run(std::vector<float> input, bool gold_silent, int repeat) co
     //std::cout << "Expected: " << global_work_size[0] << " " << local_work_size[0] << std::endl;
 
     //global_work_size[0] = this->global_size;
-    local_work_size[0] = this->local_size;
+    //local_work_size[0] = this->local_size;
 
     // std::cout << "Found: " << global_work_size[0] << " " << local_work_size[0] << std::endl;
 

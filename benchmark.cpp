@@ -51,6 +51,8 @@ struct data {
     std::vector<float> dpia;
     std::vector<float> best;
 
+    std::vector<float> extra_time;
+
     size_t exploration_input_size = 0;
     std::vector<DataAlgo> explorations_def;
     std::vector<float> explorations_time;
@@ -83,6 +85,8 @@ void benchmark() {
             auto run = algo.run(std::move(make_input(input_size)), true, 1);
             auto time = run.get_timing().total_time;
             data.dpia.push_back(time);
+            auto extra_time = run.get_timing().add_time;
+            data.extra_time.push_back(extra_time);
             std::cout << "Dpia: " << time << std::endl;
         }
 
@@ -105,9 +109,8 @@ void benchmark() {
         auto input_size = algos[0].input_size;
 
         for (auto const& algo: algos) {
-            // auto run = algo.run(std::move(make_input(input_size)), true, 1);
-            // auto time = run.get_timing().block_scans_time;
-            auto time = 0.0;
+            auto run = algo.run(std::move(make_input(input_size)), true, 1);
+            auto time = run.get_timing().block_scans_time;
 
             data.explorations_def.push_back(algo);
             data.explorations_time.push_back(time);
@@ -118,15 +121,15 @@ void benchmark() {
     }
 
     {
-        auto best_idx = 21;
-        // auto accum = -1.0;
-        // for (int i = 0; i < data.explorations_time.size(); i++) {
-        //     auto time = data.explorations_time[i];
-        //     if (accum < 0 || time < accum) {
-        //         best_idx = i;
-        //         accum = time;
-        //     }
-        // }
+        auto best_idx = -1;
+        auto accum = -1.0;
+        for (int i = 0; i < data.explorations_time.size(); i++) {
+            auto time = data.explorations_time[i];
+            if (accum < 0 || time < accum) {
+                best_idx = i;
+                accum = time;
+            }
+        }
 
         std::cout << "Best variation found at idx " << best_idx << ", re-running it end-to-end" << std::endl;
 
@@ -134,30 +137,22 @@ void benchmark() {
         DataAlgo algo = data.explorations_def[best_idx];
         std::cout << "Best name is: " << algo.kernel_name << std::endl;
 
+        size_t input_size = data.conf.minSize;
+        size_t step = 0;
+        while (input_size < data.conf.maxSize) {
+            auto extra_time = data.extra_time[step];
+            step += 1;
+            std::cout << "Step " << step << "/" << data.conf.num_steps << std::endl;
+            std::cout << "Size: " << input_size << std::endl;
+            if (input_size % algo.block_size != 0) {
+                std::cout << "WARNING: Best algorithm has unusual block size" << std::endl;
+            }
+            auto run = algo.run(std::move(make_input(input_size)), true, 1);
+            auto time = run.get_timing().total_time + extra_time;
+            data.best.push_back(time);
 
-        std::cout << "Running" << std::endl;
-        algo.run(std::move(make_input(256000)), true, 1);
-        std::cout << "Running" << std::endl;
-        algo.run(std::move(make_input(256000)), true, 1);
-        std::cout << "Running" << std::endl;
-
-        // size_t input_size = data.conf.minSize;
-        // size_t step = 0;
-        // while (input_size < data.conf.maxSize) {
-        //     step += 1;
-        //     std::cout << "Step " << step << "/" << data.conf.num_steps << std::endl;
-        //     std::cout << "Size: " << input_size << std::endl;
-        //     if (input_size % algo.block_size != 0) {
-        //         std::cout << "WARNING: Best algorithm has unusual block size" << std::endl;
-        //     }
-
-        //     //input_size = algo.input_size;
-        //     auto run = algo.run(std::move(make_input(input_size)), true, 1);
-        //     auto time = run.get_timing().total_time;
-        //     data.best.push_back(time);
-
-        //     input_size += data.conf.step;
-        // }
+            input_size += data.conf.step;
+        }
     }
 
     std::cout << "Writing out result" << std::endl;
