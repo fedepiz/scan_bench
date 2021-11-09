@@ -312,7 +312,7 @@ __kernel void dpia_block_sums(__global float* d_input, __global float* output, _
 __kernel void opencl_add(__global float* partials, __global float* block_sums) {
     float value = block_sums[get_global_id(0)];
 
-    for (auto i = 0; i < BLOCK_SIZE; i++) {
+    for (int i = 0; i < BLOCK_SIZE; i++) {
         partials[BLOCK_SIZE * get_global_id(0) + i] += value;
     }
 }
