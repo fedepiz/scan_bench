@@ -36,11 +36,18 @@ struct config {
 
 config load_config() {
     config conf;
-    conf.minSize = 524288;
-    conf.step = 1048576 - conf.minSize;
-    conf.maxSize = 31981568;
+    conf.minSize = 1048576; //1 MB
+    conf.step = 33521664;
+    conf.maxSize = 1073741824;
     conf.num_steps = conf.maxSize / conf.minSize;
     return conf;
+}
+
+const size_t num_runs = 5;
+
+float median(std::vector<float>& values) {
+    std::sort(values.begin(), values.end());
+    return values[values.size() / 2];
 }
 
 struct data {
@@ -161,7 +168,7 @@ void benchmark() {
 
     {
         std::ofstream res_file("./comparison.csv", std::ios::trunc);
-        res_file << "input, generated, optimized, nvidia";
+        res_file << "size,generated,optimized,nvidia";
         for (int i = 0; i < data.steps; i++) {
             res_file << std::endl << data.sizes[i] << "," 
                 << data.dpia[i] << "," 
@@ -174,7 +181,7 @@ void benchmark() {
 
     {
         std::ofstream res_file("./exploration.csv", std::ios::trunc);
-        res_file << "input, block size, branch factor, skip depth, time" << std::endl;
+        res_file << "size, block size, branch factor, skip depth, time" << std::endl;
         for (int i = 0; i < data.explorations_def.size(); i++) {
             auto const& algo = data.explorations_def[i];
             auto time = data.explorations_time[i];
