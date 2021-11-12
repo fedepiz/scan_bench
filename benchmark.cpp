@@ -36,18 +36,11 @@ struct config {
 
 config load_config() {
     config conf;
-    conf.minSize = 33554432;
-    conf.step = 33521664;
-    conf.maxSize = 1073741824;
+    conf.minSize = 16777216;
+    conf.step = 16777216;
+    conf.maxSize = 536870912;
     conf.num_steps = conf.maxSize / conf.minSize;
     return conf;
-}
-
-const size_t num_runs = 5;
-
-float median(std::vector<float>& values) {
-    std::sort(values.begin(), values.end());
-    return values[values.size() / 2];
 }
 
 struct data {
@@ -77,6 +70,13 @@ std::vector<float> make_input(size_t size) {
     return input;
 }
 
+float median(std::vector<float>& times) {
+    std::sort(times.begin(), times.end());
+    return times[times.size()/2];
+}
+
+const size_t num_runs = 5;
+
 void benchmark() {
     data data;
     data.conf = load_config();
@@ -91,18 +91,29 @@ void benchmark() {
 
         {
             DpiaOpenCLALgo algo;
-            auto run = algo.run(std::move(make_input(input_size)), true, 1);
-            auto time = run.get_timing().total_time;
+            std::vector<float> times;
+            float extra_time = 0.0;
+            for (int i =0; i < num_runs; i++) {
+                auto run = algo.run(std::move(make_input(input_size)), true, 1);
+                auto time = run.get_timing().total_time;
+                times.push_back(time);
+                extra_time = run.get_timing().add_time;
+            }
+            auto time = median(times);
             data.dpia.push_back(time);
-            auto extra_time = run.get_timing().add_time;
             data.extra_time.push_back(extra_time);
             std::cout << "Dpia: " << time << std::endl;
         }
 
         {
             NvidiaOpenCLAlgo algo;
-            auto run = algo.run(std::move(make_input(input_size)), true, 1);
-            auto time = run.get_timing().total_time;
+            std::vector<float> times;
+            for (int i = 0; i < num_runs; i++) {
+                auto run = algo.run(std::move(make_input(input_size)), true, 1);
+                auto time = run.get_timing().total_time;
+                times.push_back(time);
+            }
+            auto time = median(times);
             data.nvidia.push_back(time);
             std::cout << "NVidia: " << time << std::endl;
         }
@@ -156,8 +167,14 @@ void benchmark() {
             if (input_size % algo.block_size != 0) {
                 std::cout << "WARNING: Best algorithm has unusual block size" << std::endl;
             }
-            auto run = algo.run(std::move(make_input(input_size)), true, 1);
-            auto time = run.get_timing().total_time + extra_time;
+
+            std::vector<float> times;
+            for (int i = 0; i < num_runs; i++) {
+                auto run = algo.run(std::move(make_input(input_size)), true, 1);
+                auto time = run.get_timing().total_time + extra_time;
+                times.push_back(time);
+            }
+            float time = median(times);
             data.best.push_back(time);
 
             input_size += data.conf.step;
