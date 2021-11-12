@@ -36,7 +36,7 @@ struct config {
 
 config load_config() {
     config conf;
-    conf.minSize = 1048576; //1 MB
+    conf.minSize = 33554432;
     conf.step = 33521664;
     conf.maxSize = 1073741824;
     conf.num_steps = conf.maxSize / conf.minSize;

@@ -9,12 +9,63 @@ __kernel void nvidia_block_sums(__global float* g_idata, __global float* g_odata
     int block_offset = 2 * (get_global_id(0)/get_local_size(0)) * get_local_size(0);
     int offset = 1;
 
-    temp[2*thid] = g_idata[2*thid];
-    temp[2*thid+1] = g_idata[2*thid+1];
+    temp[2*thid] = g_idata[block_offset + 2*thid];
+    temp[2*thid+1] = g_idata[block_offset +2*thid+1];
+
+    // Performs the first iteration immediately
+    // if (thid < BLOCK_SIZE/2) {
+    // temp[thid] = g_idata[block_offset + 2 * thid] + g_idata[block_offset + 2 * thid + 1];
+    // }
+    // Upsweep
+    for (int d = BLOCK_SIZE >> 1; d > 0; d >>= 1) {
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (thid < d) {
+             int ai = offset*(2*thid+1)-1;     
+             int bi = offset*(2*thid+2)-1;
+             temp[bi] += temp[ai];
+        }
+        offset *= 2;
+    }
+
+    // clear the last element & record block sum
+     if (thid == 0) {
+         g_sums[get_global_id(0)/get_local_size(0)] = temp[BLOCK_SIZE-1];
+         temp[BLOCK_SIZE - 1] = 0; 
+    }
+
+    // Downsweep
+     for (int d = 1; d < BLOCK_SIZE; d *= 2) {
+         offset >>= 1;
+         barrier(CLK_LOCAL_MEM_FENCE);
+         if (thid < d) {
+             int ai = offset * (2 * thid + 1) - 1;
+             int bi = offset * (2 * thid + 2) - 1;
+             float t = temp[ai];
+             temp[ai] = temp[bi];
+             temp[bi] += t;
+         }
+     }
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+
+    g_idata[block_offset + 2 * thid] = temp[2 * thid + 1];
+    g_idata[block_offset + 2 * thid + 1] = temp[2 * thid] + temp[2 * thid + 1];
+}
+
+__kernel void nvidia_block_sums2(__global float* g_idata, __global float* g_odata, __global float* g_sums) {
+    __local float temp[BLOCK_SIZE];
+
+    // Downsweep
+    int thid = get_local_id(0);
+    int block_offset = 2 * (get_global_id(0)/get_local_size(0)) * get_local_size(0);
+    int offset = 1;
+
+    // temp[2*thid] = g_idata[2*thid];
+    // temp[2*thid+1] = g_idata[2*thid+1];
 
     // Performs the first iteration immediately
     if (thid < BLOCK_SIZE/2) {
-    temp[thid] = g_idata[block_offset + 2 * thid] + g_idata[block_offset + 2 * thid + 1];
+      temp[thid] = g_idata[block_offset + 2 * thid] + g_idata[block_offset + 2 * thid + 1];
     }
     // Upsweep
     for (int d = BLOCK_SIZE >> 1; d > 0; d >>= 1) {
